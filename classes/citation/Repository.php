@@ -17,27 +17,24 @@
 namespace PKP\citation;
 
 use APP\core\Request;
-use Exception;
+use APP\facades\Repo;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\LazyCollection;
-use PKP\facades\Repo;
+use PKP\citation\filter\CitationListTokenizerFilter;
 use PKP\plugins\Hook;
 use PKP\services\PKPSchemaService;
 use PKP\validation\ValidatorFactory;
 
 class Repository
 {
-    /** @var DAO */
-    public $dao;
+    public DAO $dao;
 
-    /** @var string $schemaMap The name of the class to map this entity to its schema */
-    public $schemaMap = maps\Schema::class;
+    /** The name of the class to map this entity to its schema */
+    public string $schemaMap = maps\Schema::class;
 
-    /** @var Request */
-    protected $request;
+    protected Request $request;
 
     /** @var PKPSchemaService<Citation> */
-    protected $schemaService;
+    protected PKPSchemaService $schemaService;
 
     public function __construct(DAO $dao, Request $request, PKPSchemaService $schemaService)
     {
@@ -57,9 +54,9 @@ class Repository
     }
 
     /** @copydoc DAO::exists() */
-    public function exists(int $id, ?int $contextId = null): bool
+    public function exists(int $id, ?int $publicationId = null): bool
     {
-        return $this->dao->exists($id, $contextId);
+        return $this->dao->exists($id, $publicationId);
     }
 
     /** @copydoc DAO::get() */
@@ -164,24 +161,16 @@ class Repository
 
     /**
      * Get all citations for a given publication.
-     *
-     * @param int $publicationId
-     *
-     * @return LazyCollection
      */
-    public function getByPublicationId(int $publicationId): LazyCollection
+    public function getByPublicationId(int $publicationId): array
     {
-        return $this->getCollector()
+        return iterator_to_array($this->getCollector()
             ->filterByPublicationIds([$publicationId])
-            ->getMany();
+            ->getMany());
     }
 
     /**
-     * Delete an publication's citations.
-     *
-     * @param int $publicationId
-     *
-     * @return void
+     * Delete a publication's citations.
      */
     public function deleteByPublicationId(int $publicationId): void
     {
@@ -191,19 +180,14 @@ class Repository
     /**
      * Import citations from a raw citation list of the particular publication.
      *
-     * @param int $publicationId
-     * @param string $rawCitationList
-     *
-     * $return void
-     *
-     * @hook CitationDAO::afterImportCitations [[$publicationId, $existingCitations, $importedCitations]]
+     * @hook Citation::DAO::afterImportCitations [[$publicationId, $existingCitations, $importedCitations]]
      */
     public function importCitations(int $publicationId, string $rawCitationList): void
     {
         assert(is_numeric($publicationId));
-        $publicationId = (int) $publicationId;
+        $publicationId = (int)$publicationId;
 
-        $existingCitations = $this->getByPublicationId($publicationId)->toArray();
+        $existingCitations = Repo::citation()->getByPublicationId($publicationId);
 
         // Remove existing citations.
         $this->deleteByPublicationId($publicationId);
@@ -230,6 +214,6 @@ class Repository
             }
         }
 
-        Hook::call('CitationDAO::afterImportCitations', [$publicationId, $existingCitations, $importedCitations]);
+        Hook::call('Citation::DAO::afterImportCitations', [$publicationId, $existingCitations, $importedCitations]);
     }
 }

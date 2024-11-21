@@ -68,7 +68,6 @@ class DAO extends EntityDAO
         SubmissionSubjectDAO $submissionSubjectDao,
         SubmissionDisciplineDAO $submissionDisciplineDao,
         SubmissionAgencyDAO $submissionAgencyDao,
-        $citationDao = null,
         PKPSchemaService $schemaService
     ) {
         parent::__construct($schemaService);

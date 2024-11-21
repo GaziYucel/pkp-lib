@@ -19,9 +19,7 @@ use APP\publication\Publication;
 use APP\submission\Submission;
 use Illuminate\Support\Enumerable;
 use Illuminate\Support\LazyCollection;
-use PKP\citation\CitationDAO;
 use PKP\context\Context;
-use PKP\db\DAORegistry;
 use PKP\services\PKPSchemaService;
 use PKP\submission\Genre;
 
@@ -136,12 +134,11 @@ class Schema extends \PKP\core\maps\Schema
                     $output[$prop] = $publication->getData('categoryIds');
                     break;
                 case 'citations':
-                    $citationDao = DAORegistry::getDAO('CitationDAO'); /** @var CitationDAO $citationDao */
                     $output[$prop] = array_map(
                         function ($citation) {
                             return $citation->getCitationWithLinks();
                         },
-                        $citationDao->getByPublicationId($publication->getId())->toArray()
+                        Repo::citation()->getByPublicationId($publication->getId())
                     );
                     break;
                 case 'doiObject':

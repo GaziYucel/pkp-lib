@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file classes/citation/CitationListTokenizerFilter.php
+ * @file classes/citation/filter/CitationListTokenizerFilter.php
  *
  * Copyright (c) 2014-2024 Simon Fraser University
  * Copyright (c) 2000-2024 John Willinsky
@@ -12,18 +12,15 @@
  * @ingroup citation
  *
  * @brief Class that takes an unformatted list of citations
- *  and returns an array of raw citation strings.
+ * and returns an array of raw citation strings.
  */
 
-namespace PKP\citation;
+namespace PKP\citation\filter;
 
 use PKP\filter\Filter;
 
 class CitationListTokenizerFilter extends Filter
 {
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->setDisplayName('Split a reference list into separate citations');
@@ -31,17 +28,8 @@ class CitationListTokenizerFilter extends Filter
         parent::__construct('primitive::string', 'primitive::string[]');
     }
 
-    //
-    // Implement template methods from Filter
-    //
-    /**
-     * @see Filter::process()
-     *
-     * @param string $input
-     *
-     * @return mixed array
-     */
-    public function &process(&$input)
+    /** @copy Filter::process() */
+    public function &process(&$input): array
     {
         // The default implementation assumes that raw citations are
         // separated with line endings.
@@ -63,5 +51,5 @@ class CitationListTokenizerFilter extends Filter
 }
 
 if (!PKP_STRICT_MODE) {
-    class_alias('\PKP\citation\CitationListTokenizerFilter', '\CitationListTokenizerFilter');
+    class_alias('\PKP\citation\filter\CitationListTokenizerFilter', '\CitationListTokenizerFilter');
 }

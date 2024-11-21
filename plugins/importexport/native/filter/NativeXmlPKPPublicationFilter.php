@@ -19,7 +19,6 @@ namespace PKP\plugins\importexport\native\filter;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\publication\Publication;
-use PKP\citation\CitationDAO;
 use PKP\db\DAORegistry;
 use PKP\filter\Filter;
 use PKP\filter\FilterGroup;
@@ -280,8 +279,7 @@ class NativeXmlPKPPublicationFilter extends NativeImportFilter
             $citationsString .= $nodeText . "\n";
         }
         $publication->setData('citationsRaw', $citationsString);
-        $citationDao = DAORegistry::getDAO('CitationDAO'); /** @var CitationDAO $citationDao */
-        $citationDao->importCitations($publicationId, $citationsString);
+        Repo::citation()->importCitations($publicationId, $citationsString);
     }
 
     //

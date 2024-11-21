@@ -19,7 +19,6 @@ namespace PKP\tests\classes\publication;
 
 use APP\publication\DAO;
 use APP\publication\Publication;
-use PKP\citation\CitationDAO;
 use PKP\services\PKPSchemaService;
 use PKP\submission\SubmissionAgencyDAO;
 use PKP\submission\SubmissionDisciplineDAO;
@@ -44,7 +43,6 @@ class PublicationTest extends PKPTestCase
             new SubmissionSubjectDAO(),
             new SubmissionDisciplineDAO(),
             new SubmissionAgencyDAO(),
-            new CitationDAO(),
             new PKPSchemaService()
         ))->newDataObject();
     }
@@ -56,7 +54,7 @@ class PublicationTest extends PKPTestCase
         unset($this->publication);
         parent::tearDown();
     }
-    
+
     public function testPageArray()
     {
         $expected = [['i', 'ix'], ['6', '11'], ['19'], ['21']];

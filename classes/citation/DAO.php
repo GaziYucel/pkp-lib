@@ -16,12 +16,16 @@
 
 namespace PKP\citation;
 
+use APP\facades\Repo;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\LazyCollection;
+use PKP\citation\filter\CitationListTokenizerFilter;
 use PKP\core\EntityDAO;
 use PKP\core\traits\EntityWithParent;
+use PKP\plugins\Hook;
 use PKP\services\PKPSchemaService;
 
 /**
@@ -70,12 +74,15 @@ class DAO extends EntityDAO
     }
 
     /**
-     * Check if an citation exists.
+     * Check if a citation exists.
      */
-    public function exists(int $id): bool
+    public function exists(int $id, ?int $publicationId = null): bool
     {
         return DB::table($this->table)
             ->where($this->primaryKeyColumn, '=', $id)
+            ->when($publicationId !== null,
+                fn(Builder $query) => $query->where($this->getParentColumn(), $publicationId)
+            )
             ->exists();
     }
 
@@ -172,5 +179,45 @@ class DAO extends EntityDAO
         } else {
             $this->update($citation);
         }
+    }
+
+    /**
+     * Import citations from a raw citation list of the particular publication.
+     *
+     * @hook \PKP\citation\DAO::afterImportCitations [[$publicationId, $existingCitations, $importedCitations]]
+     */
+    public function importCitations(int $publicationId, string $rawCitationList): void
+    {
+        assert(is_numeric($publicationId));
+        $publicationId = (int)$publicationId;
+
+        $existingCitations = Repo::citation()->getByPublicationId($publicationId);
+
+        // Remove existing citations.
+        $this->deleteByPublicationId($publicationId);
+
+        // Tokenize raw citations
+        $citationTokenizer = new CitationListTokenizerFilter();
+        $citationStrings = $citationTokenizer->execute($rawCitationList);
+
+        // Instantiate and persist citations
+        $importedCitations = [];
+        if (is_array($citationStrings)) {
+            foreach ($citationStrings as $seq => $citationString) {
+                if (!empty(trim($citationString))) {
+                    $citation = new Citation($citationString);
+                    // Set the publication
+                    $citation->setData('publicationId', $publicationId);
+                    // Set the counter
+                    $citation->setSequence($seq + 1);
+
+                    $this->insertObject($citation);
+
+                    $importedCitations[] = $citation;
+                }
+            }
+        }
+
+        Hook::call('Citation::DAO::afterImportCitations', [$publicationId, $existingCitations, $importedCitations]);
     }
 }
