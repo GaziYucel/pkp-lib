@@ -94,6 +94,7 @@ class I7135_CreateNewRorRegistryCacheTables extends Migration
                 function (JoinClause $join) {
                     $join
                         ->on('rs.setting_value', '=', 'as.setting_value')
+                        ->where('as.setting_name', '=', 'affiliation')
                         ->where('rs.setting_name', '=', 'name');
                 }
             )
