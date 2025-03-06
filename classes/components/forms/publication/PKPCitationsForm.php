@@ -1,9 +1,10 @@
 <?php
+
 /**
  * @file classes/components/form/publication/PKPCitationsForm.php
  *
- * Copyright (c) 2014-2021 Simon Fraser University
- * Copyright (c) 2000-2021 John Willinsky
+ * Copyright (c) 2014-2025 Simon Fraser University
+ * Copyright (c) 2000-2025 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * @class PKPCitationsForm
@@ -15,6 +16,7 @@
 
 namespace PKP\components\forms\publication;
 
+use APP\facades\Repo;
 use APP\publication\Publication;
 use PKP\components\forms\FieldTextarea;
 use PKP\components\forms\FormComponent;
@@ -40,6 +42,8 @@ class PKPCitationsForm extends FormComponent
             'label' => __('submission.citations'),
             'description' => __('submission.citations.description'),
             'value' => $publication->getData('citationsRaw'),
+            'isMultiLingual' => true,
+            // 'value' => Repo::citation()->getRawCitationsByPublicationId($publication->getId()),
             'isRequired' => $isRequired
         ]));
     }
