@@ -1,9 +1,10 @@
 <?php
+
 /**
  * @file classes/components/form/publication/PKPCitationsForm.php
  *
- * Copyright (c) 2014-2021 Simon Fraser University
- * Copyright (c) 2000-2021 John Willinsky
+ * Copyright (c) 2014-2025 Simon Fraser University
+ * Copyright (c) 2000-2025 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
  * @class PKPCitationsForm
@@ -15,7 +16,10 @@
 
 namespace PKP\components\forms\publication;
 
+use APP\facades\Repo;
 use APP\publication\Publication;
+use PKP\components\forms\FieldCitations;
+use PKP\components\forms\FieldOptions;
 use PKP\components\forms\FieldTextarea;
 use PKP\components\forms\FormComponent;
 
@@ -39,7 +43,33 @@ class PKPCitationsForm extends FormComponent
         $this->addField(new FieldTextarea('citationsRaw', [
             'label' => __('submission.citations'),
             'description' => __('submission.citations.description'),
-            'value' => $publication->getData('citationsRaw'),
+            'value' => Repo::citation()->getRawCitationsByPublicationId($publication->getId()),
+            'isRequired' => $isRequired
+        ]));
+
+        $this->addField(new FieldOptions('useStructuredCitations', [
+            'label' => __('submission.citations.structured'),
+            'description' => '',
+            'type' => 'checkbox',
+            'value' => $publication->getData('useStructuredCitations'),
+            'options' => [
+                [
+                    'value' => $publication->getData('useStructuredCitations'),
+                    'label' => __('submission.citations.structured.label.useStructuredReferences'),
+                ]
+            ],
+            'isRequired' => false
+        ]));
+
+        $citations = Repo::citation()->getByPublicationId($publication->getId());
+        $citations = array_map(function ($citation) {
+            return Repo::citation()->getSchemaMap()->map($citation);
+        }, $citations);
+
+        $this->addField(new FieldCitations('citations', [
+            'label' => '',
+            'description' => __('submission.citations.structured.description'),
+            'value' => $citations,
             'isRequired' => $isRequired
         ]));
     }
